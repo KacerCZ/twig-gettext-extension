@@ -24,8 +24,8 @@
         "kunststube/potools": "Provides compatible classes for creating .pot files from extracted gettext strings"
     },
     "autoload": {
-        "psr-0": {
-            "Twig_Extensions_": "lib/"
+        "psr-4": {
+            "Kacer\\TwigGettext\\": "src/"
         }
     }
 }
