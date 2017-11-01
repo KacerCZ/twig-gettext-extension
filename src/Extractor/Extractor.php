@@ -332,11 +332,11 @@ class Extractor {
             }
         }
 
-        if ($comment = $this->getPreceedingCommentNode($node->getLine())) {
+        if ($comment = $this->getPreceedingCommentNode($node->getTemplateLine())) {
             $POString->addExtractedComment(trim($comment->getValue()));
         }
 
-        $POString->addReference(sprintf("$this->file:%d", $node->getLine()));
+        $POString->addReference(sprintf("$this->file:%d", $node->getTemplateLine()));
 
         if ($this->inFormatFilterContext) {
             $POString->addFlag('php-format');
@@ -367,7 +367,7 @@ class Extractor {
         }
 
         throw new \InvalidArgumentException(sprintf('Invalid argument of type %s for %s in %s on line %d',
-                        get_class($argument), $name, $this->file, $node->getLine()));
+                        get_class($argument), $name, $this->file, $node->getTemplateLine()));
     }
 
 }
