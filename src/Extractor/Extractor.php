@@ -12,7 +12,6 @@ class Extractor {
     const CONTEXT = 'context';
 
     protected $strings = array();
-    protected $comments = array();
     protected $file;
     protected $lexer;
     protected $parser;
@@ -25,7 +24,7 @@ class Extractor {
      */
     public function __construct(\Twig_Environment $twig, PoStringFactoryInterface $PoStringFactory) {
         $this->poStringFactory = $PoStringFactory;
-        $this->lexer = new Lexer($twig);
+        $this->lexer = new \Twig_Lexer($twig);
         $this->parser = new \Twig_Parser($twig);
     }
 
@@ -35,9 +34,7 @@ class Extractor {
      */
     public function extract(\Twig_Source $source): array {
         $this->strings = [];
-
         $tokens = $this->lexer->tokenize($source);
-        $this->comments = $this->lexer->getCommentTokens();
         $node = $this->parser->parse($tokens);
         $this->processNode($node);
 
@@ -73,39 +70,12 @@ class Extractor {
     }
 
     /**
-     * Returns comment node immediately preceeding given line number, if any.
-     * 
-     * @param int $lineno
-     * @return Token|null Closest preceeding comment token or null.
-     */
-    protected function getPreceedingCommentNode($lineno) {
-        $commentNode = null;
-        foreach ($this->comments as $comment) {
-            if ($comment->getLine() <= $lineno) {
-                $commentNode = $comment;
-            } else {
-                break;
-            }
-        }
-        if (!$commentNode) {
-            return;
-        }
-
-        $lines = substr_count($commentNode->getValue(), "\n") + 1;
-        if ($commentNode->getLine() + $lines != $lineno) {
-            return;
-        }
-
-        return $commentNode;
-    }
-
-    /**
      * Processes a node and its child nodes recursively.
      * 
-     * @param \Twig_NodeInterface $node
+     * @param \Twig_Node $node
      * @param bool $inFormatFilterContext Set to true if we're descending into a `format` filter, parameter is passed down recursively.
      */
-    protected function processNode(\Twig_NodeInterface $node, bool $inFormatFilterContext = false) {
+    protected function processNode(\Twig_Node $node, bool $inFormatFilterContext = false) {
         $this->inFormatFilterContext = $inFormatFilterContext;
 
         switch (true) {
@@ -118,17 +88,17 @@ class Extractor {
         }
 
         foreach ($node as $child) {
-            if ($child instanceof \Twig_NodeInterface) {
+            if ($child instanceof \Twig_Node) {
                 $this->processNode($child, $inFormatFilterContext || $this->isFormatFilter($node));
             }
         }
     }
 
     /**
-     * @param \Twig_NodeInterface $node The node to be checked.
+     * @param \Twig_Node $node The node to be checked.
      * @return bool True if $node is a `format` filter.
      */
-    protected function isFormatFilter(\Twig_NodeInterface $node): bool {
+    protected function isFormatFilter(\Twig_Node $node): bool {
         return $node instanceof \Twig_Node_Expression_Filter && $node->getNode('filter')->getAttribute('value') == 'format';
     }
 
@@ -330,10 +300,6 @@ class Extractor {
                 default :
                     throw new \InvalidArgumentException("Invalid argument '$type'");
             }
-        }
-
-        if ($comment = $this->getPreceedingCommentNode($node->getTemplateLine())) {
-            $POString->addExtractedComment(trim($comment->getValue()));
         }
 
         $POString->addReference(sprintf("$this->file:%d", $node->getTemplateLine()));
