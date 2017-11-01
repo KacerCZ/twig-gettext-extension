@@ -1,7 +1,5 @@
-Twig Extensions Repository
+Gettext Extension for Twig
 ==========================
 
-This repository hosts Twig Extensions that do not belong to the core but can
-be nonetheless interesting to share with other developers.
-
-Fork this repository, add your extension, and request a pull.
+This extension is based on extension from https://github.com/deceze/Twig-extensions
+Extension was extracted from rest of extensions and updated to be compatible with Twig 1.x and 2.x.
