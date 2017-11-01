@@ -2,7 +2,7 @@
 
 namespace Kacer\TwigGettext\Extractor;
 
-class Token extends Twig_Token {
+class Token extends \Twig_Token {
 
     const COMMENT = 12;
 

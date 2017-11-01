@@ -16,30 +16,26 @@ class Extractor {
     protected $file;
     protected $lexer;
     protected $parser;
-    protected $POStringFactory;
+    protected $poStringFactory;
     protected $inFormatFilterContext = false;
 
     /**
-     * @param Twig_Extensions_Extension_Gettext_POString_Factory_Interface $POStringFactory An object for constructing POString objects.
-     * @param array $extensions Additional extensions that need to be loaded into the environment.
+     * @param \Twig_Environment $twig Twig instance.
+     * @param PoStringFactoryInterface $PoStringFactory An object for constructing POString objects.
      */
-    public function __construct(Twig_Extensions_Extension_Gettext_POString_Factory_Interface $POStringFactory, array $extensions = array()) {
-        $this->POStringFactory = $POStringFactory;
-
-        $twig = new Twig_Environment(new Twig_Loader_String);
-        array_map(array($twig, 'addExtension'), $extensions);
-
-        $this->lexer = new Twig_Extensions_Extension_Gettext_Lexer($twig);
-        $this->parser = new Twig_Parser($twig);
+    public function __construct(\Twig_Environment $twig, PoStringFactoryInterface $PoStringFactory) {
+        $this->poStringFactory = $PoStringFactory;
+        $this->lexer = new Lexer($twig);
+        $this->parser = new \Twig_Parser($twig);
     }
 
     /**
      * Extracts all gettext strings from given Twig template file.
      * 
      * @param string $file Path to Twig template file.
-     * @return array Array of POString objects.
+     * @return PoStringInterface[] Array of POString objects.
      */
-    public function extractFile($file) {
+    public function extractFile(string $file): array {
         $this->strings = array();
         $this->file = $file;
 
@@ -82,42 +78,42 @@ class Extractor {
     /**
      * Processes a node and its child nodes recursively.
      * 
-     * @param Twig_NodeInterface $node
+     * @param \Twig_NodeInterface $node
      * @param bool $inFormatFilterContext Set to true if we're descending into a `format` filter, parameter is passed down recursively.
      */
-    protected function processNode(Twig_NodeInterface $node, $inFormatFilterContext = false) {
+    protected function processNode(\Twig_NodeInterface $node, bool $inFormatFilterContext = false) {
         $this->inFormatFilterContext = $inFormatFilterContext;
 
         switch (true) {
-            case $node instanceof Twig_Node_Expression_Function :
+            case $node instanceof \Twig_Node_Expression_Function :
                 $this->processFunctionNode($node);
                 break;
-            case $node instanceof Twig_Node_Expression_Filter :
+            case $node instanceof \Twig_Node_Expression_Filter :
                 $this->processFilterNode($node);
                 break;
         }
 
         foreach ($node as $child) {
-            if ($child instanceof Twig_NodeInterface) {
+            if ($child instanceof \Twig_NodeInterface) {
                 $this->processNode($child, $inFormatFilterContext || $this->isFormatFilter($node));
             }
         }
     }
 
     /**
-     * @param Twig_NodeInterface $node The node to be checked.
+     * @param \Twig_NodeInterface $node The node to be checked.
      * @return bool True if $node is a `format` filter.
      */
-    protected function isFormatFilter(Twig_NodeInterface $node) {
-        return $node instanceof Twig_Node_Expression_Filter && $node->getNode('filter')->getAttribute('value') == 'format';
+    protected function isFormatFilter(\Twig_NodeInterface $node): bool {
+        return $node instanceof \Twig_Node_Expression_Filter && $node->getNode('filter')->getAttribute('value') == 'format';
     }
 
     /**
      * Processes a Function node.
      * 
-     * @param Twig_Node_Expression_Function $node
+     * @param \Twig_Node_Expression_Function $node
      */
-    protected function processFunctionNode(Twig_Node_Expression_Function $node) {
+    protected function processFunctionNode(\Twig_Node_Expression_Function $node) {
         switch ($node->getAttribute('name')) {
             case '_' :
             case 'gettext' :
@@ -173,9 +169,9 @@ class Extractor {
     /**
      * Processes a Filter node.
      * 
-     * @param Twig_Node_Expression_Filter $node
+     * @param \Twig_Node_Expression_Filter $node
      */
-    protected function processFilterNode(Twig_Node_Expression_Filter $node) {
+    protected function processFilterNode(\Twig_Node_Expression_Filter $node) {
         switch ($node->getNode('filter')->getAttribute('value')) {
             case '_' :
             case 'gettext' :
@@ -231,10 +227,10 @@ class Extractor {
     /**
      * Parses arguments of a Function node and pushes entry into list of extracted strings.
      * 
-     * @param Twig_Node_Expression_Function $node
+     * @param \Twig_Node_Expression_Function $node
      * @param mixed Variable number of arguments representing roles of the Twig function arguments.
      */
-    protected function pushFunction(Twig_Node_Expression_Function $node /* , arg, .. */) {
+    protected function pushFunction(\Twig_Node_Expression_Function $node /* , arg, .. */) {
         $args = func_get_args();
         array_shift($args);
 
@@ -253,10 +249,10 @@ class Extractor {
     /**
      * Parses arguments of a Filter node and pushes entry into list of extracted strings.
      * 
-     * @param Twig_Node_Expression_Filter $node
+     * @param \Twig_Node_Expression_Filter $node
      * @param mixed Variable number of arguments representing roles of the Twig filter arguments.
      */
-    protected function pushFilter(Twig_Node_Expression_Filter $node /* , arg, .. */) {
+    protected function pushFilter(\Twig_Node_Expression_Filter $node /* , arg, .. */) {
         $args = func_get_args();
         array_shift($args);
 
@@ -275,15 +271,15 @@ class Extractor {
     /**
      * Pushes entry into list of extracted strings.
      * 
-     * @param Twig_Node_Expression $node
+     * @param \Twig_Node_Expression $node
      * @param array $valueNodes Associative array of value nodes (values) and their role (keys).
      */
-    protected function pushEntry(Twig_Node_Expression $node, array $valueNodes) {
+    protected function pushEntry(\Twig_Node_Expression $node, array $valueNodes) {
         if (!isset($valueNodes[self::MSGID])) {
             throw new LogicException('$valueNodes array must contain a MSGID value');
         }
 
-        $POString = $this->POStringFactory->construct($valueNodes[self::MSGID]->getAttribute('value'));
+        $POString = $this->poStringFactory->construct($valueNodes[self::MSGID]->getAttribute('value'));
 
         foreach ($valueNodes as $type => $argument) {
             if ($type === self::VARIABLE) {
@@ -326,27 +322,27 @@ class Extractor {
     }
 
     /**
-     * Throws an exception with detailled error message in case of argument parse errors.
+     * Throws an exception with detailed error message in case of argument parse errors.
      * 
-     * @param Twig_Node_Expression $argument The invalid/unexpected argument node.
-     * @param Twig_Node_Expression $node The Filter or Function node to which the $argument belongs.
-     * @throws InvalidArgumentException (The main purpose.)
-     * @throws LogicException In case an unexpected $node argument was passed.
+     * @param \Twig_Node_Expression $argument The invalid/unexpected argument node.
+     * @param \Twig_Node_Expression $node The Filter or Function node to which the $argument belongs.
+     * @throws \InvalidArgumentException (The main purpose.)
+     * @throws \LogicException In case an unexpected $node argument was passed.
      */
-    protected function invalidArgumentTypeParseError(Twig_Node_Expression $argument, Twig_Node_Expression $node) {
+    protected function invalidArgumentTypeParseError(\Twig_Node_Expression $argument, \Twig_Node_Expression $node) {
         switch (true) {
-            case $node instanceof Twig_Node_Expression_Function :
+            case $node instanceof \Twig_Node_Expression_Function :
                 $name = $node->getAttribute('name');
                 break;
-            case $node instanceof Twig_Node_Expression_Filter :
+            case $node instanceof \Twig_Node_Expression_Filter :
                 $name = $node->getNode('filter')->getAttribute('value');
                 break;
             default :
-                throw new LogicException(sprintf("Don't know how to get name of node %s to throw an InvalidArgumentException",
+                throw new \LogicException(sprintf("Don't know how to get name of node %s to throw an InvalidArgumentException",
                                 get_class($node)));
         }
 
-        throw new InvalidArgumentException(sprintf('Invalid argument of type %s for %s in %s on line %d',
+        throw new \InvalidArgumentException(sprintf('Invalid argument of type %s for %s in %s on line %d',
                         get_class($argument), $name, $this->file, $node->getLine()));
     }
 

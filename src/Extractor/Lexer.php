@@ -2,7 +2,7 @@
 
 namespace Kacer\TwigGettext\Extractor;
 
-class Lexer extends Twig_Lexer {
+class Lexer extends \Twig_Lexer {
 
     protected $commentTokens = array();
 
@@ -24,7 +24,7 @@ class Lexer extends Twig_Lexer {
         }
 
         $value = substr($this->code, $this->cursor, $match[0][1] - $this->cursor);
-        $token = new Twig_Extensions_Extension_Gettext_Token(Twig_Extensions_Extension_Gettext_Token::COMMENT, $value, $this->lineno);
+        $token = new Token(Token::COMMENT, $value, $this->lineno);
         $this->commentTokens[] = $token;
         $this->moveCursor($value . $match[0][0]);
     }
