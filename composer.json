@@ -1,29 +1,30 @@
 {
-    "name": "twig/extensions",
-    "description": "Common additional features for Twig that do not directly belong in core",
-    "keywords": ["debug","i18n","text"],
-    "homepage": "https://github.com/fabpot/Twig-extensions",
+    "name": "kacer/twig-gettext-extension",
+    "description": "Twig extension for template translation using gettext",
+    "keywords": [ "twig", "gettext", "translation" ],
+    "homepage": "https://github.com/KacerCZ/twig-gettext-extension",
     "type": "library",
     "license": "MIT",
     "authors": [
         {
-            "name": "Fabien Potencier",
-            "email": "fabien@symfony.com"
+            "name": "Tomáš Procházka",
+            "email": "kacer@razdva.cz"
+        },
+        {
+            "name": "deceze",
+            "homepage": "http://kunststube.net/",
+            "role": "Developer of original extension"
         }
     ],
     "require": {
-        "twig/twig": "1.*"
+        "twig/twig": "^1.27"
     },
     "suggest": {
         "kunststube/potools": "Provides compatible classes for creating .pot files from extracted gettext strings"
     },
     "autoload": {
-        "psr-0": { "Twig_Extensions_": "lib/" }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.0.x-dev"
+        "psr-0": {
+            "Twig_Extensions_": "lib/"
         }
-    },
-    "minimum-stability": "dev"
+    }
 }
