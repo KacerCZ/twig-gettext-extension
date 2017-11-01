@@ -61,10 +61,10 @@ class Extractor {
 
     /**
      * Extracts all gettext strings from given Twig template code.
-     * @param string $source
-     * @return \Twig_Extensions_Extension_Gettext_POString_Interface[]
+     * @param string $content Content of Twig template.
+     * @return PoStringInterface[] Array of POString objects.
      */
-    public function extractFromString(string $content) {
+    public function extractFromString(string $content): array {
         $this->file = 'string';
         $source = new \Twig_Source($content, 'string');
         $strings = $this->extract($source);
@@ -76,7 +76,7 @@ class Extractor {
      * Returns comment node immediately preceeding given line number, if any.
      * 
      * @param int $lineno
-     * @return Twig_Extensions_Extension_Gettext_Token Closest preceeding comment token or null.
+     * @return Token|null Closest preceeding comment token or null.
      */
     protected function getPreceedingCommentNode($lineno) {
         $commentNode = null;
@@ -300,7 +300,7 @@ class Extractor {
      */
     protected function pushEntry(\Twig_Node_Expression $node, array $valueNodes) {
         if (!isset($valueNodes[self::MSGID])) {
-            throw new LogicException('$valueNodes array must contain a MSGID value');
+            throw new \LogicException('$valueNodes array must contain a MSGID value');
         }
 
         $POString = $this->poStringFactory->construct($valueNodes[self::MSGID]->getAttribute('value'));
@@ -308,7 +308,7 @@ class Extractor {
         foreach ($valueNodes as $type => $argument) {
             if ($type === self::VARIABLE) {
                 continue;
-            } else if (!($argument instanceof Twig_Node_Expression_Constant)) {
+            } else if (!($argument instanceof \Twig_Node_Expression_Constant)) {
                 $this->invalidArgumentTypeParseError($argument, $node);
             }
 
@@ -328,7 +328,7 @@ class Extractor {
                     $POString->setMsgctxt($argument->getAttribute('value'));
                     break;
                 default :
-                    throw new InvalidArgumentException("Invalid argument '$type'");
+                    throw new \InvalidArgumentException("Invalid argument '$type'");
             }
         }
 

@@ -20,7 +20,7 @@ class Lexer extends \Twig_Lexer {
      */
     protected function lexComment() {
         if (!preg_match($this->regexes['lex_comment'], $this->code, $match, PREG_OFFSET_CAPTURE, $this->cursor)) {
-            throw new Twig_Error_Syntax('Unclosed comment', $this->lineno, $this->filename);
+            throw new \Twig_Error_Syntax('Unclosed comment', $this->lineno, $this->filename);
         }
 
         $value = substr($this->code, $this->cursor, $match[0][1] - $this->cursor);
