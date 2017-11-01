@@ -1,9 +1,11 @@
 <?php
 
-class Twig_Extensions_Extension_Gettext_Lexer extends Twig_Lexer {
-    
+namespace Kacer\TwigGettext\Extractor;
+
+class Lexer extends Twig_Lexer {
+
     protected $commentTokens = array();
-    
+
     /**
      * Overrides tokenize to initialize $this->commentTokens.
      */
@@ -11,7 +13,7 @@ class Twig_Extensions_Extension_Gettext_Lexer extends Twig_Lexer {
         $this->commentTokens = array();
         return parent::tokenize($code, $filename);
     }
-    
+
     /**
      * Overrides lexComment by saving comment tokens into $this->commentTokens
      * instead of just ignoring them.
@@ -26,12 +28,12 @@ class Twig_Extensions_Extension_Gettext_Lexer extends Twig_Lexer {
         $this->commentTokens[] = $token;
         $this->moveCursor($value . $match[0][0]);
     }
-    
+
     /**
      * Returns the comment tokens that were extracted.
      */
     public function getCommentTokens() {
         return $this->commentTokens;
     }
-    
+
 }

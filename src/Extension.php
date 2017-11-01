@@ -1,6 +1,8 @@
 <?php
 
-class Twig_Extensions_Extension_Gettext extends Twig_Extension {
+namespace Kacer\TwigGettext;
+
+class Extension extends \Twig_Extension {
     
     protected $useShortnames = true;
     

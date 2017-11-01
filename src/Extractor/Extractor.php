@@ -1,42 +1,38 @@
 <?php
 
-class Twig_Extensions_Extension_Gettext_Extractor {
-    
-    const VARIABLE     = 0;
-    const MSGID        = 'msgid';
+namespace Kacer\TwigGettext\Extractor;
+
+class Extractor {
+
+    const VARIABLE = 0;
+    const MSGID = 'msgid';
     const MSGID_PLURAL = 'msgid_plural';
-    const DOMAIN       = 'domain';
-    const CATEGORY     = 'category';
-    const CONTEXT      = 'context';
-    
+    const DOMAIN = 'domain';
+    const CATEGORY = 'category';
+    const CONTEXT = 'context';
+
     protected $strings = array();
-    
     protected $comments = array();
-    
     protected $file;
-    
     protected $lexer;
-    
     protected $parser;
-    
     protected $POStringFactory;
-    
     protected $inFormatFilterContext = false;
-    
+
     /**
      * @param Twig_Extensions_Extension_Gettext_POString_Factory_Interface $POStringFactory An object for constructing POString objects.
      * @param array $extensions Additional extensions that need to be loaded into the environment.
      */
     public function __construct(Twig_Extensions_Extension_Gettext_POString_Factory_Interface $POStringFactory, array $extensions = array()) {
         $this->POStringFactory = $POStringFactory;
-        
+
         $twig = new Twig_Environment(new Twig_Loader_String);
         array_map(array($twig, 'addExtension'), $extensions);
-        
-        $this->lexer  = new Twig_Extensions_Extension_Gettext_Lexer($twig);
+
+        $this->lexer = new Twig_Extensions_Extension_Gettext_Lexer($twig);
         $this->parser = new Twig_Parser($twig);
     }
-    
+
     /**
      * Extracts all gettext strings from given Twig template file.
      * 
@@ -45,17 +41,17 @@ class Twig_Extensions_Extension_Gettext_Extractor {
      */
     public function extractFile($file) {
         $this->strings = array();
-        $this->file    = $file;
-        
+        $this->file = $file;
+
         $source = file_get_contents($file);
         $tokens = $this->lexer->tokenize($source);
         $this->comments = $this->lexer->getCommentTokens();
         $node = $this->parser->parse($tokens);
         $this->processNode($node);
-        
+
         return $this->strings;
     }
-    
+
     /**
      * Returns comment node immediately preceeding given line number, if any.
      * 
@@ -74,15 +70,15 @@ class Twig_Extensions_Extension_Gettext_Extractor {
         if (!$commentNode) {
             return;
         }
-        
+
         $lines = substr_count($commentNode->getValue(), "\n") + 1;
-        if ($commentNode->getLine() + $lines !=  $lineno) {
+        if ($commentNode->getLine() + $lines != $lineno) {
             return;
         }
-        
+
         return $commentNode;
     }
-    
+
     /**
      * Processes a node and its child nodes recursively.
      * 
@@ -91,7 +87,7 @@ class Twig_Extensions_Extension_Gettext_Extractor {
      */
     protected function processNode(Twig_NodeInterface $node, $inFormatFilterContext = false) {
         $this->inFormatFilterContext = $inFormatFilterContext;
-        
+
         switch (true) {
             case $node instanceof Twig_Node_Expression_Function :
                 $this->processFunctionNode($node);
@@ -100,14 +96,14 @@ class Twig_Extensions_Extension_Gettext_Extractor {
                 $this->processFilterNode($node);
                 break;
         }
-    
+
         foreach ($node as $child) {
             if ($child instanceof Twig_NodeInterface) {
                 $this->processNode($child, $inFormatFilterContext || $this->isFormatFilter($node));
             }
         }
     }
-    
+
     /**
      * @param Twig_NodeInterface $node The node to be checked.
      * @return bool True if $node is a `format` filter.
@@ -115,7 +111,7 @@ class Twig_Extensions_Extension_Gettext_Extractor {
     protected function isFormatFilter(Twig_NodeInterface $node) {
         return $node instanceof Twig_Node_Expression_Filter && $node->getNode('filter')->getAttribute('value') == 'format';
     }
-    
+
     /**
      * Processes a Function node.
      * 
@@ -173,7 +169,7 @@ class Twig_Extensions_Extension_Gettext_Extractor {
                 break;
         }
     }
-    
+
     /**
      * Processes a Filter node.
      * 
@@ -231,51 +227,51 @@ class Twig_Extensions_Extension_Gettext_Extractor {
                 break;
         }
     }
-    
+
     /**
      * Parses arguments of a Function node and pushes entry into list of extracted strings.
      * 
      * @param Twig_Node_Expression_Function $node
      * @param mixed Variable number of arguments representing roles of the Twig function arguments.
      */
-    protected function pushFunction(Twig_Node_Expression_Function $node /*, arg, .. */) {
+    protected function pushFunction(Twig_Node_Expression_Function $node /* , arg, .. */) {
         $args = func_get_args();
         array_shift($args);
 
         $valueNodes = array();
-        
+
         foreach ($node->getNode('arguments') as $i => $argumentNode) {
             if (!isset($args[$i])) {
                 break;
             }
             $valueNodes[$args[$i]] = $argumentNode;
         }
-        
+
         $this->pushEntry($node, $valueNodes);
     }
-    
+
     /**
      * Parses arguments of a Filter node and pushes entry into list of extracted strings.
      * 
      * @param Twig_Node_Expression_Filter $node
      * @param mixed Variable number of arguments representing roles of the Twig filter arguments.
      */
-    protected function pushFilter(Twig_Node_Expression_Filter $node /*, arg, .. */) {
+    protected function pushFilter(Twig_Node_Expression_Filter $node /* , arg, .. */) {
         $args = func_get_args();
         array_shift($args);
-        
+
         $valueNodes = array(self::MSGID => $node->getNode('node'));
-        
+
         foreach ($node->getNode('arguments') as $i => $argumentNode) {
             if (!isset($args[$i])) {
                 break;
             }
             $valueNodes[$args[$i]] = $argumentNode;
         }
-        
+
         $this->pushEntry($node, $valueNodes);
     }
-    
+
     /**
      * Pushes entry into list of extracted strings.
      * 
@@ -286,16 +282,16 @@ class Twig_Extensions_Extension_Gettext_Extractor {
         if (!isset($valueNodes[self::MSGID])) {
             throw new LogicException('$valueNodes array must contain a MSGID value');
         }
-        
+
         $POString = $this->POStringFactory->construct($valueNodes[self::MSGID]->getAttribute('value'));
-        
+
         foreach ($valueNodes as $type => $argument) {
             if ($type === self::VARIABLE) {
                 continue;
             } else if (!($argument instanceof Twig_Node_Expression_Constant)) {
                 $this->invalidArgumentTypeParseError($argument, $node);
             }
-            
+
             switch ($type) {
                 case self::MSGID :
                     continue;
@@ -315,7 +311,7 @@ class Twig_Extensions_Extension_Gettext_Extractor {
                     throw new InvalidArgumentException("Invalid argument '$type'");
             }
         }
-        
+
         if ($comment = $this->getPreceedingCommentNode($node->getLine())) {
             $POString->addExtractedComment(trim($comment->getValue()));
         }
@@ -328,7 +324,7 @@ class Twig_Extensions_Extension_Gettext_Extractor {
 
         $this->strings[] = $POString;
     }
-    
+
     /**
      * Throws an exception with detailled error message in case of argument parse errors.
      * 
@@ -347,11 +343,11 @@ class Twig_Extensions_Extension_Gettext_Extractor {
                 break;
             default :
                 throw new LogicException(sprintf("Don't know how to get name of node %s to throw an InvalidArgumentException",
-                                                 get_class($node)));
+                                get_class($node)));
         }
-        
+
         throw new InvalidArgumentException(sprintf('Invalid argument of type %s for %s in %s on line %d',
-                                                   get_class($argument), $name, $this->file, $node->getLine()));
+                        get_class($argument), $name, $this->file, $node->getLine()));
     }
-    
+
 }

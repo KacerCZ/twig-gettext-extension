@@ -1,6 +1,6 @@
 <?php
-
-interface Twig_Extensions_Extension_Gettext_POString_Interface {
+namespace Kacer\TwigGettext\Extractor;
+interface PoStringInterface {
     
     /**
      * @param string $msgid The primary localizable string.
