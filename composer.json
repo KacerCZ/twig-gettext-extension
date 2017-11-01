@@ -21,7 +21,8 @@
         "twig/twig": "^1.27"
     },
     "require-dev": {
-        "kunststube/potools": "^0.4.1"
+        "kunststube/potools": "^0.4.1",
+        "phpstan/phpstan": "*"
     },
     "suggest": {
         "kunststube/potools": "Provides compatible classes for creating .pot files from extracted gettext strings"
