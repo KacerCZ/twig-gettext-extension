@@ -30,22 +30,46 @@ class Extractor {
     }
 
     /**
-     * Extracts all gettext strings from given Twig template file.
-     * 
-     * @param string $file Path to Twig template file.
+     * Extracts all gettext strings from template.
      * @return PoStringInterface[] Array of POString objects.
      */
-    public function extractFile(string $file): array {
-        $this->strings = array();
-        $this->file = $file;
+    public function extract(\Twig_Source $source): array {
+        $this->strings = [];
 
-        $source = file_get_contents($file);
         $tokens = $this->lexer->tokenize($source);
         $this->comments = $this->lexer->getCommentTokens();
         $node = $this->parser->parse($tokens);
         $this->processNode($node);
 
         return $this->strings;
+    }
+
+    /**
+     * Extracts all gettext strings from given Twig template file.
+     * 
+     * @param string $file Path to Twig template file.
+     * @return PoStringInterface[] Array of POString objects.
+     */
+    public function extractFromFile(string $file): array {
+        $this->file = $file;
+        $content = file_get_contents($file);
+        $source = new \Twig_Source($content, 'file', $file);
+        $strings = $this->extract($source);
+
+        return $strings;
+    }
+
+    /**
+     * Extracts all gettext strings from given Twig template code.
+     * @param string $source
+     * @return \Twig_Extensions_Extension_Gettext_POString_Interface[]
+     */
+    public function extractFromString(string $content) {
+        $this->file = 'string';
+        $source = new \Twig_Source($content, 'string');
+        $strings = $this->extract($source);
+
+        return $strings;
     }
 
     /**
