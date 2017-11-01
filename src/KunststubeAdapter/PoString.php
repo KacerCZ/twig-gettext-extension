@@ -11,7 +11,7 @@ use Kacer\TwigGettext\Extractor\PoStringInterface;
  */
 class PoString extends \Kunststube\POTools\POString implements PoStringInterface {
 
-    public function __construct(string $msgid) {
+    public function __construct($msgid) {
         parent::__construct($msgid);
     }
 

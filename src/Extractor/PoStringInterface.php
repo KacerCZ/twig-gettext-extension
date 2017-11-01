@@ -7,7 +7,7 @@ interface PoStringInterface {
     /**
      * @param string $msgid The primary localizable string.
      */
-    public function __construct(string $msgid);
+    public function __construct($msgid);
 
     /**
      * @param string $msgidPlural The pluralized string (for ngettext and similar).
