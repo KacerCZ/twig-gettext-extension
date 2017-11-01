@@ -1,7 +1,7 @@
 {
     "name": "kacer/twig-gettext-extension",
     "description": "Twig extension for template translation using gettext",
-    "keywords": [ "twig", "gettext", "translation" ],
+    "keywords": ["twig", "gettext", "translation"],
     "homepage": "https://github.com/KacerCZ/twig-gettext-extension",
     "type": "library",
     "license": "MIT",
@@ -19,6 +19,9 @@
     "require": {
         "php": ">=7.0",
         "twig/twig": "^1.27"
+    },
+    "require-dev": {
+        "kunststube/potools": "^0.4.1"
     },
     "suggest": {
         "kunststube/potools": "Provides compatible classes for creating .pot files from extracted gettext strings"
