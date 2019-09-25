@@ -284,7 +284,7 @@ class Extractor {
 
             switch ($type) {
                 case self::MSGID :
-                    continue;
+                    break;
                 case self::MSGID_PLURAL :
                     $POString->setMsgidPlural($argument->getAttribute('value'));
                     break;
